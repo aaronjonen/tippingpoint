@@ -10,7 +10,7 @@ setup(
         "unittest"
     ],
     license="MIT",
-    long_description="Tippingpoint sms api",
+    long_description=long_description,
     install_requires=[
         "requests",
         "urllib3"
