@@ -7,12 +7,14 @@ setup(
     version="0.2",
     packages=[
         "tippingpoint",
+
         "unittest"
     ],
     license="MIT",
     long_description=long_description,
     install_requires=[
         "requests",
+        'scapy',
         "urllib3"
     ],
     url="https://github.com/aaronjonen/tippingpoint.git",

@@ -1,11 +1,17 @@
 from __future__ import unicode_literals
 from __future__ import print_function
+import os
+import tempfile
+from scapy.all import rdpcap
 import json
+import io
+
 
 class UnknownHeader(Exception):
     def __init__(self,message):
         super(UnknownHeader,self).__init__(message)
         self.message = message
+
 
 class Resource(object):
     GET="GET"
@@ -53,6 +59,23 @@ class Resource(object):
             status = 'Success'
 
         return data, status
+    def _request_process_pcap(self,response):
+        """
+        handle pcap download
+        :param response:
+        :return: dict of pcap info,status of response
+        """
+        status = 'Failure'
+        # Handle document download
+        data = response.content
+        string_data= None
+        if data:
+            status = 'Success'
+            data = rdpcap(io.BytesIO(data))
+            l = [i.show(dump=True) for i in data]
+            string_data = "\n-------END-------\n".join(l)
+
+        return string_data, status
 
     def _request_process_text(self, response):
         """Handle Signature download.
@@ -77,8 +100,11 @@ class Resource(object):
                                    additional_parameters=self.additional_parameters,
                                    file_up=self.file)
         status=None
+        data=None
         if "content-type" in response.headers:
-            if response.headers['content-type'] == 'application/json':
+            if response.headers['content-type'] == 'application/pcap':
+                data, status = self._request_process_pcap(response)
+            elif response.headers['content-type'] == 'application/json':
                 data, status = self._request_process_json_standard(response)
             elif response.headers['content-type'] == 'application/octet-stream':
                 data, status = self._request_process_octet(response)
@@ -99,6 +125,46 @@ class Resource(object):
             'status':status
         }
 
+
+class DevicePacket(Resource):
+    def __init__(self,client):
+        super(DevicePacket,self).__init__(client)
+        self.status_codes = {
+            'GET':[200],
+            'POST':[200]
+        }
+        self.url = self.url.format("pcaps/getByDevice")
+
+    def packet_trace(self,device_id):
+        self.method=Resource.GET
+        self.additional_parameters = {"deviceId":device_id}
+
+
+class EventPacket(Resource):
+
+    def __init__(self,client):
+        super(EventPacket,self).__init__(client)
+        self.url = self.url.format("pcaps/getByEventIds")
+        self.status_codes = {
+            'GET':[200],
+            'POST':[200]
+        }
+        self.file = tempfile.NamedTemporaryFile(delete=False)
+
+    def packet_trace(self,event_ids=None):
+        """
+        :param event_ids: list of event ids
+        :return:
+        """
+        self.method=Resource.POST
+        self.file.write(','.join(event_ids))
+        self.file.close()
+
+    def __del__(self):
+        try:
+            os.remove(self.file.name)
+        except  OSError:
+            pass
 
 class Info(Resource):
     def __init__(self,client):

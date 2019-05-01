@@ -35,7 +35,7 @@ class TPClient:
             headers = {"X-SMS-API-KEY":self.api_key}
         files=None
         if file_up is not None:
-            files = {'file':open(file_up,'rb')}
+            files = {'file':open(file_up.name,'rb')}
 
         r = requests.request(method=method,
                              url=url,
