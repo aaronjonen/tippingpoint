@@ -4,7 +4,7 @@ with open("README.md","r") as fh:
 
 setup(
     name='tippingpoint',
-    version="0.2",
+    version="0.3",
     packages=[
         "tippingpoint",
 
