@@ -19,7 +19,7 @@ setup(
     ],
     url="https://github.com/aaronjonen/tippingpoint.git",
     author="aaron jonen",
-    author_email="aaron.jonen@nexteraenergy.com",
+    author_email="ajonen@mailcan.com",
     include_package_data=True,
     zip_safe=False
 )
